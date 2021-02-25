@@ -1,0 +1,13 @@
+{
+  "name": "streamcam",
+  "version": "0.1.0",
+  "author": "Hydrothermal",
+  "description": "high quality virtual cam",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^11.3.0"
+  }
+}

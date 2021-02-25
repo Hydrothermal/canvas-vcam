@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>high quality virtual cam</title>
+
+    <style>
+    body {
+        margin: 0;
+        -webkit-app-region: drag;
+        background-color: #707070;
+    }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="537" height="318"></canvas>
+
+    <script>
+    const WIDTH = window.innerWidth;
+    const HEIGHT = window.innerHeight;
+    const MOUSE = {
+        OFFSET: [157, 295],
+        SCALE_X: 0.06,
+        SCALE_Y: 0.11,
+        SKEW_X: 4,
+        SKEW_Y: 5,
+        IMAGE_SIZE: 0.8 * 50
+    };
+
+    const { ipcRenderer } = require("electron");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const images = {};
+    let mouse_img = "mouse_2";
+    let key_img = 0;
+    let mouse = [WIDTH / 2, HEIGHT / 2];
+
+    function loadImage(name, path) {
+        return new Promise((resolve, reject) => {
+            const image = images[name] = new Image();
+            image.src = path;
+            image.onload = resolve;
+        });
+    }
+
+    function skew(x, y) {
+        const skew_y = y / MOUSE.SKEW_Y;
+        const skew_x = x - (skew_y * MOUSE.SKEW_X);
+
+        return [
+            MOUSE.OFFSET[0] - (skew_x * MOUSE.SCALE_X),
+            MOUSE.OFFSET[1] - (skew_y * MOUSE.SCALE_Y)
+        ];
+    }
+
+    function dotAt(x, y, n) {
+        const [skew_x, skew_y] = skew(x, y);
+
+        ctx.beginPath();
+        ctx.arc(
+            skew_x,
+            skew_y,
+            2, 0, 2 * Math.PI
+        );
+        ctx.fill();
+    }
+
+    // draws dots to show the skewed mouse area
+    function field() {
+        ctx.fillStyle = "#f00";
+
+        for(let x = 0; x < WIDTH; x += 14 / MOUSE.SCALE_X) {
+            for(let y = 0; y < HEIGHT; y += 18 / MOUSE.SCALE_Y) {
+                dotAt(x, y);
+            }
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.drawImage(images[`key_${key_img + 1}`], 0, 0);
+        // field();
+
+        const [skew_x, skew_y] = skew(...mouse);
+        const mouse_x = skew_x - (MOUSE.IMAGE_SIZE / 2);
+        const mouse_y = skew_y - (MOUSE.IMAGE_SIZE / 2);
+
+        ctx.drawImage(
+            images[mouse_img],
+            0, 0, 50, 50,
+            mouse_x, mouse_y, MOUSE.IMAGE_SIZE, MOUSE.IMAGE_SIZE
+        );
+
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = "#000";
+        ctx.filter = "blur(0.4px)";
+        ctx.beginPath();
+        ctx.moveTo(skew_x, skew_y);
+        ctx.lineTo(284, 140);
+        ctx.stroke();
+        ctx.filter = "none";
+    }
+
+    function updateMouse(x, y) {
+        if(!isNaN(x) && !isNaN(y)) {
+            mouse = [x, y];
+            render();
+        }
+    }
+
+    function mousedown() {
+        mouse_img = "mouse_3";
+        render();
+    }
+
+    function mouseup() {
+        mouse_img = "mouse_2";
+        render();
+    }
+
+    function hitKey() {
+        key_img = (key_img + 1) % 9;
+        render();
+    }
+
+    ipcRenderer.on("mouse", (event, a, b) => { updateMouse(a, b); });
+    ipcRenderer.on("mousedown", mousedown);
+    ipcRenderer.on("mouseup", mouseup);
+    ipcRenderer.on("keydown", hitKey);
+    ipcRenderer.on("keyup", hitKey);
+
+    // dom-bound events for testing the view directly, without electron
+    // document.addEventListener("mousemove", e => { updateMouse(e.offsetX, e.offsetY); });
+    // document.addEventListener("mousedown", mousedown);
+    // document.addEventListener("mouseup", mouseup);
+    // document.addEventListener("keydown", e => { hitKey(); });
+    // document.addEventListener("keyup", e => { hitKey(); });
+
+    // shift+esc to close
+    document.addEventListener("keydown", e => {
+        if(e.shiftKey && e.keyCode === 27) {
+            window.close();
+        }
+    });
+
+    document.body.style.zoom = document.URL.match(/scale=(.+)/)[1];
+
+    Promise.all([
+        loadImage("base", "img/base.png"),
+        loadImage("key_1", "img/key_1.png"),
+        loadImage("key_2", "img/key_2.png"),
+        loadImage("key_3", "img/key_3.png"),
+        loadImage("key_4", "img/key_4.png"),
+        loadImage("key_5", "img/key_5.png"),
+        loadImage("key_6", "img/key_6.png"),
+        loadImage("key_7", "img/key_7.png"),
+        loadImage("key_8", "img/key_8.png"),
+        loadImage("key_9", "img/key_9.png"),
+        loadImage("mouse_1", "img/mouse_1.png"),
+        loadImage("mouse_2", "img/mouse_2.png"),
+        loadImage("mouse_3", "img/mouse_3.png")
+    ]).then(render);
+    </script>
+</body>
+</html>
