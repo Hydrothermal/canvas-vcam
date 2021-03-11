@@ -37,6 +37,7 @@ function createWindow() {
     input.on("mouseup", attachSend("mouseup"));
     input.on("keydown", attachSend("keydown"));
     input.on("keyup", attachSend("keyup"));
+    input.on("voice", attachSend("voice"));
 }
 
 app.whenReady().then(createWindow);
