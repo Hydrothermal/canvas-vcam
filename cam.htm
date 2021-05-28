@@ -6,20 +6,26 @@
 
     <style>
     body {
+        overflow: hidden;
         margin: 0;
         -webkit-app-region: drag;
         background-color: #707070;
     }
+
+    #body {
+        background-color: transparent;
+        opacity: 0.5;
+    }
     </style>
 </head>
 <body>
-    <canvas id="canvas" width="537" height="318"></canvas>
+    <canvas id="canvas" width="600" height="400"></canvas>
 
     <script>
     const WIDTH = window.innerWidth;
     const HEIGHT = window.innerHeight;
     const MOUSE = {
-        OFFSET: [157, 295],
+        OFFSET: [157, 377],
         SCALE_X: 0.06,
         SCALE_Y: 0.11,
         SKEW_X: 4,
@@ -32,9 +38,8 @@
     const ctx = canvas.getContext("2d");
     const images = {};
     let mouse_img = "mouse_2";
-    let key_img = 0;
     let mouse = [WIDTH / 2, HEIGHT / 2];
-    let talking = 0;
+    let talking = 0, key_img = 0, hat_img = 0;
 
     function loadImage(name, path) {
         return new Promise((resolve, reject) => {
@@ -83,6 +88,7 @@
         const base = talking ? images.base_talking : images.base;
         ctx.drawImage(base, 0, 0);
         ctx.drawImage(images[`key_${key_img + 1}`], 0, 0);
+
         // field();
 
         const [skew_x, skew_y] = skew(...mouse);
@@ -100,9 +106,11 @@
         ctx.filter = "blur(0.4px)";
         ctx.beginPath();
         ctx.moveTo(skew_x, skew_y);
-        ctx.lineTo(284, 140);
+        ctx.lineTo(284, 222);
         ctx.stroke();
         ctx.filter = "none";
+
+        if(hat_img) { ctx.drawImage(images[`hat_${hat_img}`], 0, 0); }
     }
 
     function updateMouse(x, y) {
@@ -132,12 +140,18 @@
         render();
     }
 
+    function setHat(event, hat_index) {
+        hat_img = hat_index;
+        render();
+    }
+
     ipcRenderer.on("mouse", (event, a, b) => { updateMouse(a, b); });
     ipcRenderer.on("mousedown", mousedown);
     ipcRenderer.on("mouseup", mouseup);
     ipcRenderer.on("keydown", hitKey);
     ipcRenderer.on("keyup", hitKey);
     ipcRenderer.on("voice", detectVoice);
+    ipcRenderer.on("hat", setHat);
 
     // dom-bound events for testing the view directly, without electron
     // document.addEventListener("mousemove", e => { updateMouse(e.offsetX, e.offsetY); });
@@ -158,6 +172,11 @@
     Promise.all([
         loadImage("base", "img/base.png"),
         loadImage("base_talking", "img/base_talking.png"),
+        loadImage("hat_1", "img/hat_1.png"),
+        loadImage("hat_2", "img/hat_2.png"),
+        loadImage("hat_3", "img/hat_3.png"),
+        loadImage("hat_4", "img/hat_4.png"),
+        loadImage("hat_5", "img/hat_5.png"),
         loadImage("key_1", "img/key_1.png"),
         loadImage("key_2", "img/key_2.png"),
         loadImage("key_3", "img/key_3.png"),

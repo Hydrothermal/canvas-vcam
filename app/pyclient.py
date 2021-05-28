@@ -37,13 +37,18 @@ stream = pa.open(format = FORMAT,
 # accounts for secondary monitor
 X_OFFSET = 1600
 X_MAX = 1820
+# X_OFFSET = 0
+# X_MAX = 9999
 
 port = sys.argv[1]
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect(("localhost", int(port)))
 
 def on_move(x, y):
-    x = min(x + X_OFFSET, X_MAX)
+    if x < 100:
+        x += X_OFFSET
+
+    # x = min(x + X_OFFSET, X_MAX)
     s.send("mouse {0} {1}\n".format(x, y).encode())
 
 def on_click(x, y, button, pressed):
