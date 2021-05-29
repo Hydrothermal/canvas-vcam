@@ -194,12 +194,11 @@
             analyser.getByteFrequencyData(array);
 
             let sum = 0;
-            var length = array.length;
-            for (var i = 0; i < length; i++) {
+            for (let i = 0; i < length; i++) {
                 sum += array[i];
             }
 
-            const average = sum / length;
+            const average = sum / array.length;
             const nowTalking = average > TALKING_THRESHOLD;
             if (nowTalking != talking) {
                 talking = nowTalking;

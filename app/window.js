@@ -38,12 +38,13 @@ function createWindow() {
         }
     });
 
-    input.on("mouse", attachSend("mouse"));
-    input.on("mousedown", attachSend("mousedown"));
-    input.on("mouseup", attachSend("mouseup"));
-    input.on("keydown", attachSend("keydown"));
-    input.on("keyup", attachSend("keyup"));
-    input.on("voice", attachSend("voice"));
+    for(const eventName of ["mouse", "mousedown", "mouseup", "keydown", "keyup"]) {
+        const handler = attachSend(eventName);
+        input.on(eventName, handler);
+        win.on('closed', () => {
+            input.off(eventName, handler);
+        });
+    }
 }
 
 function clickHat(event) {
