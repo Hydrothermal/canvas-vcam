@@ -22,6 +22,8 @@
     <canvas id="canvas" width="600" height="400"></canvas>
 
     <script>
+    const TALKING_THRESHOLD = 20;
+
     const WIDTH = window.innerWidth;
     const HEIGHT = window.innerHeight;
     const MOUSE = {
@@ -39,7 +41,7 @@
     const images = {};
     let mouse_img = "mouse_2";
     let mouse = [WIDTH / 2, HEIGHT / 2];
-    let talking = 0, key_img = 0, hat_img = 0;
+    let talking = false, key_img = 0, hat_img = 0;
 
     function loadImage(name, path) {
         return new Promise((resolve, reject) => {
@@ -165,6 +167,48 @@
         if(e.shiftKey && e.keyCode === 27) {
             window.close();
         }
+    });
+
+    const userMediaPromise = navigator.mediaDevices.getUserMedia({
+        audio: {
+            channelCount: 1,
+            sampleRate: 44100,
+            sampleSize: 16,
+        },
+        video: false,
+    }).then(stream => {
+        const audioContext = new AudioContext();
+        const analyser = audioContext.createAnalyser();
+        const microphone = audioContext.createMediaStreamSource(stream);
+        const javascriptNode = audioContext.createScriptProcessor(2048, 1, 1); // TODO: what are these values?
+
+        analyser.smoothingTimeConstant = 0.3;
+        analyser.fftSize = 1024;
+
+        microphone.connect(analyser);
+        analyser.connect(javascriptNode);
+        javascriptNode.connect(audioContext.destination);
+
+        javascriptNode.onaudioprocess = () => {
+            const array =  new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(array);
+
+            let sum = 0;
+            var length = array.length;
+            for (var i = 0; i < length; i++) {
+                sum += array[i];
+            }
+
+            const average = sum / length;
+            const nowTalking = average > TALKING_THRESHOLD;
+            if (nowTalking != talking) {
+                talking = nowTalking;
+                render();
+            }
+        }
+    }, (error) => {
+        console.log('Error getting audio stream');
+        console.error(error);
     });
 
     document.body.style.zoom = document.URL.match(/scale=(.+)/)[1];

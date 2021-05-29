@@ -1,36 +1,16 @@
-const net = require("net");
-const { spawn } = require("child_process");
 const { EventEmitter } = require("events");
+const iohook = require('iohook');
 
 const emitter = module.exports = new EventEmitter();
 
-function closed() {
-    console.log("closed");
+iohook.on('mousemove', event => {
+  emitter.emit('mouse', event.x, event.y);
+});
+
+for (const eventName of ["mousedown", "mouseup", "keydown", "keyup"]) {
+    iohook.on(eventName, event => {
+        emitter.emit(eventName);
+    });
 }
 
-const server = net.createServer(client => {
-    console.log("connection");
-
-    // this assumes that one event is sent per chunk, which is not always the case if the
-    // python client loads events too quickly
-    // however, garbage data is discarded by the window and events come in very fast, so
-    // this isn't a big issue
-    client.on("data", chunk => {
-        const data = chunk.toString().split(/\s+/);
-        emitter.emit(...data);
-    });
-
-    client.on("close", closed);
-    client.on("error", closed);
-});
-
-server.on("listening", () => {
-    const port = server.address().port;
-
-    emitter.emit("ready");
-    console.log(`listening on ${port}`);
-    spawn("python", ["app/pyclient.py", port]);
-});
-
-// listen on random port
-server.listen(0);
+iohook.start();

@@ -27,7 +27,7 @@ function createWindow() {
             try {
                 win.webContents.send(event, ...args);
             } catch(e) {
-                console.log("could not send IPC to window");
+                console.log("could not send IPC to window " + String(e));
             }
         };
     }
