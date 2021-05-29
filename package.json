@@ -18,6 +18,19 @@
   },
   "dependencies": {
     "electron-compile": "^6.4.4",
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-squirrel-startup": "^1.0.0",
+    "iohook": "^0.9.0"
+  },
+  "iohook": {
+    "targets": [
+      "node-83",
+      "electron-76"
+    ],
+    "platforms": [
+      "win32"
+    ],
+    "arches": [
+      "x64"
+    ]
   }
 }
