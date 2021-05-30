@@ -98,6 +98,7 @@
     function render() {
         requestAnimationFrame(render);
 
+        const talking = getIsTalking();
         if (talking !== was_talking) {
             rerender = true;
             was_talking = talking;
