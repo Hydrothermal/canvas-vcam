@@ -20,18 +20,28 @@
 </head>
 <body>
     <canvas id="canvas" width="600" height="400"></canvas>
+    <script src="app/audio.js"></script>
 
     <script>
     const WIDTH = window.innerWidth;
     const HEIGHT = window.innerHeight;
     const MOUSE = {
         OFFSET: [157, 377],
-        SCALE_X: 0.06,
-        SCALE_Y: 0.11,
         SKEW_X: 4,
         SKEW_Y: 5,
-        IMAGE_SIZE: 0.8 * 50
+        IMAGE_SIZE: 0.8 * 50,
+
+        // 4k left of main
+        SCREEN_TOP_LEFT: [-3840, 0],
+        SCREEN_BOTTOM_RIGHT: [0, 2160],
+
+        // 2k main
+        // SCREEN_TOP_LEFT: [0, 0],
+        // SCREEN_BOTTOM_RIGHT: [2560, 1440],
     };
+
+    MOUSE.SCALE_X = 120 / (MOUSE.SCREEN_BOTTOM_RIGHT[0] - MOUSE.SCREEN_TOP_LEFT[0]);
+    MOUSE.SCALE_Y = 100 / (MOUSE.SCREEN_BOTTOM_RIGHT[1] - MOUSE.SCREEN_TOP_LEFT[1]);
 
     const { ipcRenderer } = require("electron");
     const canvas = document.getElementById("canvas");
@@ -39,7 +49,8 @@
     const images = {};
     let mouse_img = "mouse_2";
     let mouse = [WIDTH / 2, HEIGHT / 2];
-    let talking = 0, key_img = 0, hat_img = 0;
+    let key_img = 0, hat_img = 0;
+    let rerender = true, was_talking = false;
 
     function loadImage(name, path) {
         return new Promise((resolve, reject) => {
@@ -50,8 +61,10 @@
     }
 
     function skew(x, y) {
-        const skew_y = y / MOUSE.SKEW_Y;
-        const skew_x = x - (skew_y * MOUSE.SKEW_X);
+        const bound_x = Math.max(MOUSE.SCREEN_TOP_LEFT[0], Math.min(MOUSE.SCREEN_BOTTOM_RIGHT[0], x)) - MOUSE.SCREEN_TOP_LEFT[0];
+        const bound_y = Math.max(MOUSE.SCREEN_TOP_LEFT[1], Math.min(MOUSE.SCREEN_BOTTOM_RIGHT[1], y)) - MOUSE.SCREEN_TOP_LEFT[1];
+        const skew_y = bound_y / MOUSE.SKEW_Y;
+        const skew_x = bound_x - (skew_y * MOUSE.SKEW_X);
 
         return [
             MOUSE.OFFSET[0] - (skew_x * MOUSE.SCALE_X),
@@ -83,6 +96,19 @@
     }
 
     function render() {
+        requestAnimationFrame(render);
+
+        const talking = getIsTalking();
+        if (talking !== was_talking) {
+            rerender = true;
+            was_talking = talking;
+        }
+
+        if (!rerender)
+            return;
+
+        rerender = false;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const base = talking ? images.base_talking : images.base;
@@ -116,33 +142,28 @@
     function updateMouse(x, y) {
         if(!isNaN(x) && !isNaN(y)) {
             mouse = [x, y];
-            render();
+            rerender = true;
         }
     }
 
     function mousedown() {
         mouse_img = "mouse_3";
-        render();
+        rerender = true;
     }
 
     function mouseup() {
         mouse_img = "mouse_2";
-        render();
+        rerender = true;
     }
 
     function hitKey() {
         key_img = (key_img + 1) % 9;
-        render();
-    }
-
-    function detectVoice(event, data) {
-        talking = data === "start";
-        render();
+        rerender = true;
     }
 
     function setHat(event, hat_index) {
         hat_img = hat_index;
-        render();
+        rerender = true;
     }
 
     ipcRenderer.on("mouse", (event, a, b) => { updateMouse(a, b); });
@@ -150,7 +171,6 @@
     ipcRenderer.on("mouseup", mouseup);
     ipcRenderer.on("keydown", hitKey);
     ipcRenderer.on("keyup", hitKey);
-    ipcRenderer.on("voice", detectVoice);
     ipcRenderer.on("hat", setHat);
 
     // dom-bound events for testing the view directly, without electron
