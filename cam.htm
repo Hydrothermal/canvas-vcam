@@ -31,7 +31,9 @@
         SCALE_Y: 0.11,
         SKEW_X: 4,
         SKEW_Y: 5,
-        IMAGE_SIZE: 0.8 * 50
+        IMAGE_SIZE: 0.8 * 50,
+        SCREEN_TOP_LEFT: [0, 0],
+        SCREEN_BOTTOM_RIGHT: [2560, 1440],
     };
 
     const { ipcRenderer } = require("electron");
@@ -52,8 +54,10 @@
     }
 
     function skew(x, y) {
-        const skew_y = y / MOUSE.SKEW_Y;
-        const skew_x = x - (skew_y * MOUSE.SKEW_X);
+        const bound_x = Math.max(MOUSE.SCREEN_TOP_LEFT[0], Math.min(MOUSE.SCREEN_BOTTOM_RIGHT[0], x))
+        const bound_y = Math.max(MOUSE.SCREEN_TOP_LEFT[1], Math.min(MOUSE.SCREEN_BOTTOM_RIGHT[1], y))
+        const skew_y = bound_y / MOUSE.SKEW_Y;
+        const skew_x = bound_x - (skew_y * MOUSE.SKEW_X);
 
         return [
             MOUSE.OFFSET[0] - (skew_x * MOUSE.SCALE_X),
