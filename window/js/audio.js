@@ -1,4 +1,5 @@
 const TALKING_THRESHOLD = 20;
+const FLAPPINESS = 0.85;
 const FILTER_FREQUENCY = 750;
 const FILTER_STRENGTH = 0.3;
 
@@ -6,6 +7,8 @@ let getIsTalking;
 
 (function audioInit() {
     const audioContext = new AudioContext();
+    let talking = false;
+
     const analyser = audioContext.createAnalyser();
     analyser.smoothingTimeConstant = 0.3;
     analyser.fftSize = 1024;
@@ -25,7 +28,16 @@ let getIsTalking;
         }
 
         const average = sum / array.length;
-        return average > TALKING_THRESHOLD;
+        
+        if(average > TALKING_THRESHOLD) {
+            talking = true;
+        } else if(talking && average > TALKING_THRESHOLD * FLAPPINESS) {
+            talking = true;
+        } else {
+            talking = false;
+        }
+
+        return talking;
     };
 
     const userMediaPromise = navigator.mediaDevices.getUserMedia({
