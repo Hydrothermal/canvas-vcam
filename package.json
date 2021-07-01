@@ -14,7 +14,7 @@
     "electron-builder": "^22.10.5"
   },
   "dependencies": {
-    "iohook": "0.9.0"
+    "iohook": "^0.9.0"
   },
   "iohook": {
     "targets": [
