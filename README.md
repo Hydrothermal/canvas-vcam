@@ -1,3 +1,3 @@
 # high quality virtual cam
 
-This is an Electron app that reads data over a local TCP server from a Python client to track global mouse and keyboard input. Requires Python. Start with `npm start` or using `start.bat`.
+This is an Electron app that reads global mouse and keyboard input via iohook and audio input via the web audio API inside the client window. Start with `npm start` or using `start.bat`.
