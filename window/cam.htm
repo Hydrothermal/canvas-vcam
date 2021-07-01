@@ -20,7 +20,7 @@
 </head>
 <body>
     <canvas id="canvas" width="600" height="400"></canvas>
-    <script src="app/audio.js"></script>
+    <script src="js/audio.js"></script>
 
     <script>
     const WIDTH = window.innerWidth;
@@ -32,12 +32,12 @@
         IMAGE_SIZE: 0.8 * 50,
 
         // 4k left of main
-        SCREEN_TOP_LEFT: [-3840, 0],
-        SCREEN_BOTTOM_RIGHT: [0, 2160],
+        SCREEN_TOP_LEFT: [-1600, 0],
+        SCREEN_BOTTOM_RIGHT: [0, 1080],
 
         // 2k main
         // SCREEN_TOP_LEFT: [0, 0],
-        // SCREEN_BOTTOM_RIGHT: [2560, 1440],
+        // SCREEN_BOTTOM_RIGHT: [1920, 1080],
     };
 
     MOUSE.SCALE_X = 120 / (MOUSE.SCREEN_BOTTOM_RIGHT[0] - MOUSE.SCREEN_TOP_LEFT[0]);
@@ -104,8 +104,7 @@
             was_talking = talking;
         }
 
-        if (!rerender)
-            return;
+        if (!rerender) { return; }
 
         rerender = false;
 

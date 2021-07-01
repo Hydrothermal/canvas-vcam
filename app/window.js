@@ -32,7 +32,7 @@ function createWindow() {
         };
     }
 
-    win.loadFile("cam.htm", {
+    win.loadFile("window/cam.htm", {
         query: {
             scale: SCALE
         }
@@ -57,7 +57,7 @@ function createTrayIcon() {
         hats.map(name => ({ label: name, type: "radio", click: clickHat }))
     );
 
-    tray = new Tray(__dirname + "/../img/icon.png");
+    tray = new Tray(__dirname + "/../icon.png");
     tray.setToolTip("streamcam")
     tray.setContextMenu(contextMenu);
 }
