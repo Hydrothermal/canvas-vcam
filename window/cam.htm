@@ -21,6 +21,9 @@
 <body>
     <canvas id="canvas" width="600" height="400"></canvas>
     <script src="js/audio.js"></script>
+    <script src="js/tmi.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/twitch.js"></script>
 
     <script>
     const WIDTH = window.innerWidth;
@@ -186,7 +189,7 @@
         }
     });
 
-    document.body.style.zoom = document.URL.match(/scale=(.+)/)[1];
+    document.body.style.zoom = document.URL.match(/scale=([^&]+)/)[1];
 
     Promise.all([
         loadImage("base", "img/base.png"),

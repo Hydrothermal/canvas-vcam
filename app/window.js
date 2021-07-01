@@ -34,14 +34,15 @@ function createWindow() {
 
     win.loadFile("window/cam.htm", {
         query: {
-            scale: SCALE
+            scale: SCALE,
+            hats: hats.join(";")
         }
     });
 
     for(const eventName of ["mouse", "mousedown", "mouseup", "keydown", "keyup"]) {
         const handler = attachSend(eventName);
         input.on(eventName, handler);
-        win.on('closed', () => {
+        win.on("closed", () => {
             input.off(eventName, handler);
         });
     }
