@@ -16,10 +16,10 @@ function createWindow() {
             contextIsolation: false
         },
         frame: false,
-        transparent: true,
-        alwaysOnTop: true
+        transparent: true
     });
 
+    win.setAlwaysOnTop(true, "pop-up-menu");
     // win.setIgnoreMouseEvents(true);
 
     function attachSend(event) {
