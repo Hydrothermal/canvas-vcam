@@ -32,19 +32,13 @@
         OFFSET: [157, 377],
         SKEW_X: 4,
         SKEW_Y: 5,
-        IMAGE_SIZE: 0.8 * 50,
-
-        // 4k left of main
-        SCREEN_TOP_LEFT: [-1600, 0],
-        SCREEN_BOTTOM_RIGHT: [0, 1080],
-
-        // 2k main
-        // SCREEN_TOP_LEFT: [0, 0],
-        // SCREEN_BOTTOM_RIGHT: [1920, 1080],
+        IMAGE_SIZE: 0.8 * 50
     };
 
-    MOUSE.SCALE_X = 120 / (MOUSE.SCREEN_BOTTOM_RIGHT[0] - MOUSE.SCREEN_TOP_LEFT[0]);
-    MOUSE.SCALE_Y = 100 / (MOUSE.SCREEN_BOTTOM_RIGHT[1] - MOUSE.SCREEN_TOP_LEFT[1]);
+    const screens = [
+        { origin: [-1600, 0], size: [1600, 1080] },
+        { origin: [0, 0], size: [1920, 1080] }
+    ];
 
     const { ipcRenderer } = require("electron");
     const canvas = document.getElementById("canvas");
@@ -54,6 +48,7 @@
     let mouse = [WIDTH / 2, HEIGHT / 2];
     let key_img = 0, hat_img = 0;
     let rerender = true, was_talking = false;
+    let current_screen = screens[0];
 
     function loadImage(name, path) {
         return new Promise((resolve, reject) => {
@@ -63,39 +58,27 @@
         });
     }
 
+    function mouseInScreen(screen) {
+        const [x, y] = screen.origin;
+        const [w, h] = screen.size;
+
+        return (
+            mouse[0] >= x && mouse[0] < x + w &&
+            mouse[1] >= y && mouse[1] < y + h
+        );
+    }
+
     function skew(x, y) {
-        const bound_x = Math.max(MOUSE.SCREEN_TOP_LEFT[0], Math.min(MOUSE.SCREEN_BOTTOM_RIGHT[0], x)) - MOUSE.SCREEN_TOP_LEFT[0];
-        const bound_y = Math.max(MOUSE.SCREEN_TOP_LEFT[1], Math.min(MOUSE.SCREEN_BOTTOM_RIGHT[1], y)) - MOUSE.SCREEN_TOP_LEFT[1];
+        const { origin, size } = current_screen;
+        const bound_x = Math.max(origin[0], Math.min(origin[0] + size[0], x)) - origin[0];
+        const bound_y = Math.max(origin[1], Math.min(origin[1] + size[1], y)) - origin[1];
         const skew_y = bound_y / MOUSE.SKEW_Y;
         const skew_x = bound_x - (skew_y * MOUSE.SKEW_X);
 
         return [
-            MOUSE.OFFSET[0] - (skew_x * MOUSE.SCALE_X),
-            MOUSE.OFFSET[1] - (skew_y * MOUSE.SCALE_Y)
+            MOUSE.OFFSET[0] - (skew_x * 120 / size[0]),
+            MOUSE.OFFSET[1] - (skew_y * 100 / size[1])
         ];
-    }
-
-    function dotAt(x, y, n) {
-        const [skew_x, skew_y] = skew(x, y);
-
-        ctx.beginPath();
-        ctx.arc(
-            skew_x,
-            skew_y,
-            2, 0, 2 * Math.PI
-        );
-        ctx.fill();
-    }
-
-    // draws dots to show the skewed mouse area
-    function field() {
-        ctx.fillStyle = "#f00";
-
-        for(let x = 0; x < WIDTH; x += 14 / MOUSE.SCALE_X) {
-            for(let y = 0; y < HEIGHT; y += 18 / MOUSE.SCALE_Y) {
-                dotAt(x, y);
-            }
-        }
     }
 
     function render() {
@@ -117,7 +100,15 @@
         ctx.drawImage(base, 0, 0);
         ctx.drawImage(images[`key_${key_img + 1}`], 0, 0);
 
-        // field();
+        // determine current screen
+        if(!mouseInScreen(current_screen)) {
+            for(let screen of screens) {
+                if(mouseInScreen(screen)) {
+                    current_screen = screen;
+                    break;
+                }
+            }
+        }
 
         const [skew_x, skew_y] = skew(...mouse);
         const mouse_x = skew_x - (MOUSE.IMAGE_SIZE / 2);
