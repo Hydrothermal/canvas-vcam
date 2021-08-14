@@ -35,11 +35,6 @@
         IMAGE_SIZE: 0.8 * 50
     };
 
-    const screens = [
-        { origin: [-1600, 0], size: [1600, 1080] },
-        { origin: [0, 0], size: [1920, 1080] }
-    ];
-
     const { ipcRenderer } = require("electron");
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
@@ -48,7 +43,7 @@
     let mouse = [WIDTH / 2, HEIGHT / 2];
     let key_img = 0, hat_img = 0;
     let rerender = true, was_talking = false;
-    let current_screen = screens[0];
+    let current_screen = SCREENS[0];
 
     function loadImage(name, path) {
         return new Promise((resolve, reject) => {
@@ -102,7 +97,7 @@
 
         // determine current screen
         if(!mouseInScreen(current_screen)) {
-            for(let screen of screens) {
+            for(let screen of SCREENS) {
                 if(mouseInScreen(screen)) {
                     current_screen = screen;
                     break;
