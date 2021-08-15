@@ -9,6 +9,9 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
   },
+  "build": {
+    "asarUnpack": ["window/img/*", "window/js/config.js"]
+  },
   "devDependencies": {
     "electron": "^11.0.0",
     "electron-builder": "^22.10.5"
