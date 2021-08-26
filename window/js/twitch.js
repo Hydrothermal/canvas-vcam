@@ -15,8 +15,15 @@ function message(target, context, message, self) {
         // change hat
         case "c80da6ef-be40-4cb3-aa12-091b9ecf5b48":
         if(message && valid_hats) {
-            const hat_index = valid_hats.indexOf(message);
-            
+            let hat_index;
+
+            for(let i = 0; i < valid_hats.length; i++) {
+                if(message.replace(/ /g, "").includes(valid_hats[i].replace(/ /g, ""))) {
+                    hat_index = i;
+                    break;
+                }
+            }
+
             if(hat_index > -1) {
                 setHat(null, hat_index);
             }
