@@ -1,6 +1,6 @@
 const SCALE = 0.75;
 // const SCALE = 1;
-const { app, BrowserWindow, Menu, Tray } = require("electron");
+const { app, BrowserWindow, Menu, Tray, screen } = require("electron");
 const input = require("./input");
 const hats = ["none", "top hat", "fedora", "shroom", "crown", "harry"];
 let win, tray;
@@ -46,6 +46,13 @@ function createWindow() {
             input.off(eventName, handler);
         });
     }
+
+    win.webContents.on("ipc-message", (event, channel) => {
+        if(channel === "get-screens") {
+            const screens = screen.getAllDisplays().map(display => display.workArea);
+            win.send("screens", screens);
+        }
+    });
 }
 
 function clickHat(event) {
