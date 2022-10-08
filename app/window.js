@@ -20,7 +20,7 @@ function createWindow() {
         alwaysOnTop: true
     });
 
-    // win.setIgnoreMouseEvents(true);
+    // // win.setIgnoreMouseEvents(true);
 
     function attachSend(event) {
         return (...args) => {
