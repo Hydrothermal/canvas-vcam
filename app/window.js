@@ -20,7 +20,7 @@ function createWindow() {
         alwaysOnTop: true
     });
 
-    // // win.setIgnoreMouseEvents(true);
+    // win.setIgnoreMouseEvents(true);
 
     function attachSend(event) {
         return (...args) => {
@@ -39,7 +39,7 @@ function createWindow() {
         }
     });
 
-    for(const eventName of ["mouse", "mousedown", "mouseup", "keydown", "keyup"]) {
+    for(const eventName of Object.values(keys)) {
         const handler = attachSend(eventName);
         input.on(eventName, handler);
         win.on("closed", () => {
