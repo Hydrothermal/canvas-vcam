@@ -174,10 +174,11 @@
     // document.addEventListener("keydown", e => { hitKey(); });
     // document.addEventListener("keyup", e => { hitKey(); });
 
-    // shift+esc to close
     document.addEventListener("keydown", e => {
-        if(e.shiftKey && e.keyCode === 27) {
+        if(e.shiftKey && e.keyCode === 27) { // shift+esc to close
             window.close();
+        } else if(e.keyCode === 112) { // f1 for settings
+            ipcRenderer.send("settings");
         }
     });
 

@@ -2,15 +2,37 @@ const SCALE = 0.75;
 // const SCALE = 1;
 const { app, BrowserWindow, Menu, Tray, screen } = require("electron");
 const input = require("./input");
+const db = require("./db");
 const hats = ["none", "top hat", "fedora", "shroom", "crown", "harry"];
-let win, tray;
+let window, settings_window;
+
+function createSettingsWindow() {
+    const [x, y] = window.getPosition();
+
+    settings_window = new BrowserWindow({
+        width: 500,
+        height: 500,
+        x: x + 20,
+        y: y + 20,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        },
+        frame: true,
+        transparent: true
+    });
+
+    settings_window.setAlwaysOnTop(true, "pop-up-menu");
+    settings_window.removeMenu();
+    settings_window.loadFile("window/settings.htm");
+}
 
 function createWindow() {
-    win = new BrowserWindow({
+    window = new BrowserWindow({
         width: Math.round(600 * SCALE),
         height: Math.round(400 * SCALE),
         // x: 0, y: 0,
-        x: 6, y: 145,
+        x: -1000, y: 100,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
@@ -19,20 +41,20 @@ function createWindow() {
         transparent: true
     });
 
-    win.setAlwaysOnTop(true, "pop-up-menu");
+    window.setAlwaysOnTop(true, "pop-up-menu");
     // win.setIgnoreMouseEvents(true);
 
     function attachSend(event) {
         return (...args) => {
             try {
-                win.webContents.send(event, ...args);
+                window.webContents.send(event, ...args);
             } catch(e) {
                 console.log("could not send IPC to window " + String(e));
             }
         };
     }
 
-    win.loadFile("window/cam.htm", {
+    window.loadFile("window/cam.htm", {
         query: {
             scale: SCALE,
             hats: hats.join(";")
@@ -42,30 +64,44 @@ function createWindow() {
     for(const eventName of ["mouse", "mousedown", "mouseup", "keydown", "keyup"]) {
         const handler = attachSend(eventName);
         input.on(eventName, handler);
-        win.on("closed", () => {
+        window.on("closed", () => {
             input.off(eventName, handler);
         });
     }
 
-    win.webContents.on("ipc-message", (event, channel) => {
-        if(channel === "get-screens") {
+    window.on("close", () => {
+        app.quit();
+    });
+
+    window.webContents.on("ipc-message", (event, channel) => {
+        switch(channel) {
+            case "get-screens":
             const screens = screen.getAllDisplays().map(display => display.workArea);
-            win.send("screens", screens);
+            window.send("screens", screens);
+            break;
+
+            case "settings":
+            if(settings_window && !settings_window.isDestroyed()) {
+                settings_window.focus();
+            } else {
+                createSettingsWindow();
+            }
+            break;
         }
     });
 }
 
 function clickHat(event) {
     const hat_index = hats.indexOf(event.label);
-    win.webContents.send("hat", hat_index);
+    window.webContents.send("hat", hat_index);
 }
 
 function createTrayIcon() {
     const contextMenu = Menu.buildFromTemplate(
         hats.map(name => ({ label: name, type: "radio", click: clickHat }))
     );
+    const tray = new Tray(__dirname + "/../icon.png");
 
-    tray = new Tray(__dirname + "/../icon.png");
     tray.setToolTip("streamcam")
     tray.setContextMenu(contextMenu);
 }

@@ -10,7 +10,7 @@
     "dist": "electron-builder"
   },
   "build": {
-    "asarUnpack": ["window/img/*", "window/js/config.js"]
+    "asar": false
   },
   "devDependencies": {
     "electron": "^11.0.0",
